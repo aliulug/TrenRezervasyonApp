@@ -65,6 +65,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="css\bootstrap.min.css" />
+    <Content Include="css\style.css" />
     <Content Include="rezervasyon.htm" />
     <Content Include="scripts\angular.js" />
     <Content Include="scripts\trenRezervasyon.js" />
