@@ -5,31 +5,49 @@ var trenRezervasyonApp = angular.module('trenRezervasyonApp', []);
 trenRezervasyonApp.controller('TrenRezervasyonCtrl', ['$scope','trSunucuIletisim', function ($scope, trSunucuIletisim)
 {
     $scope.RezervasyonKapsam = new RezervasyonKapsam();
-    $scope.RezervasyonKapsam.trenleriEkle(trSunucuIletisim.trenleriAl());
+    trSunucuIletisim.trenleriAl().then(function (data)
+    {
+        $scope.RezervasyonKapsam.trenleriEkle(data);
+    });
 
     $scope.rezervasyonYap = function()
     {
-        if (typeof ($scope.trenAdi) == 'undefined' || typeof ($scope.kisiSayisi) == 'undefined')
+        if (!$scope.RezervasyonKapsam.istekGecerli())
         {
-            alert("Lütfen tren ve kişi sayısı seçiniz");
+            alert("Lütfen bilgileri giriniz");
             return;
         }
 
-        var rezervasyonIstegiSonuc = trSunucuIletisim.rezervasyonIstegiGonder($scope.trenAdi, $scope.kisiSayisi);
-        $scope.RezervasyonKapsam.rezervasyonSonucuIsle(rezervasyonIstegiSonuc);
+        trSunucuIletisim.rezervasyonIstegiGonder($scope.RezervasyonKapsam.istek).then(function(istekSonucu)
+        {
+            $scope.RezervasyonKapsam.rezervasyonSonucuIsle(istekSonucu);
+        });
     };
 }]);
 
-trenRezervasyonApp.service('trSunucuIletisim', [function ()
+trenRezervasyonApp.service('trSunucuIletisim', ['$http', '$q', function ($http, $q)
 {
+    this.http = $http;
+    var erteleme = $q;
+
     this.trenleriAl = function ()
     {
-        return [{ "Ad": "Fatih Ekspresi" }, { "Ad": "Doğu Ekspresi" }, { "Ad": "Başkent Ekspresi" }];
+        var kilit = erteleme.defer();
+        this.http.post("/TrenleriAl.tra", kilit).success(function (data)
+        {
+            kilit.resolve(data);
+        });
+        return kilit.promise;
     };
 
-    this.rezervasyonIstegiGonder = function (trenAdi, kisiSayisi)
+    this.rezervasyonIstegiGonder = function (istek)
     {
-        return { "Basarili": true, "VagonNo": 5, "KisiSayisi": kisiSayisi };
+        var kilit = erteleme.defer();
+        this.http.post("/RezervasyonYap.tra", istek).success(function (data)
+        {
+            kilit.resolve(data);
+        });
+        return kilit.promise;
     };
 }]);
 
@@ -40,6 +58,7 @@ function RezervasyonKapsam()
     this.rezervasyonBasarili = false;
     this.rezYapilanVagonNo = 0;
     this.rezYapilanKisiSayisi = 0;
+    this.istek = {};
 
     this.trenleriEkle = function(trenListesi)
     {
@@ -55,5 +74,12 @@ function RezervasyonKapsam()
             this.rezYapilanVagonNo = sunucudanGelenCevap.VagonNo;
             this.rezYapilanKisiSayisi = sunucudanGelenCevap.KisiSayisi;
         }
+    };
+    
+    this.istekGecerli = function ()
+    {
+        if (typeof(this.istek.tren) == 'undefined' || typeof(this.istek.kisiSayisi) == 'undefined')
+            return false;
+        return true;
     };
 }
