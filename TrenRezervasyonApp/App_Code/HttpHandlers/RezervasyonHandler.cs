@@ -21,14 +21,14 @@ namespace TrenRezervasyonApp.HttpHandlers
 				response.Write("Tanımsız istek");
 		}
 
-		private void rezervasyonYap(HttpResponse response, HttpRequest request)
-		{
-			response.Write("{\"Basarili\":true,\"VagonNo\":3,\"KisiSayisi\":1}");
-		}
-
 		private void trenleriAl(HttpResponse response)
 		{
 			response.Write("[{ \"Ad\": \"Fatih Ekspresi\" }, { \"Ad\": \"Doğu Ekspresi\" }, { \"Ad\": \"Başkent Ekspresi\" }]");
+		}
+		
+		private void rezervasyonYap(HttpResponse response, HttpRequest request)
+		{
+			response.Write("{\"Basarili\":true,\"VagonNo\":3,\"KisiSayisi\":1}");
 		}
 
 		public bool IsReusable { get; private set; }
